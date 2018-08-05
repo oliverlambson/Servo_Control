@@ -48,6 +48,8 @@
 /* Exported functions ------------------------------------------------------- */
 
 void SysTick_Handler(void);
+void TIM6_DAC1_IRQHandler(void);
+void TIM7_DAC2_IRQHandler(void);
 
 #ifdef __cplusplus
 }
