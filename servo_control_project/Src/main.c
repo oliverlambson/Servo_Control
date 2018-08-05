@@ -40,12 +40,12 @@
 #include "stm32f3xx_hal.h"
 
 /* USER CODE BEGIN Includes */
-
+#include "usr.h"
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
+TIM_HandleTypeDef htim2;
 TIM_HandleTypeDef htim6;
-TIM_HandleTypeDef htim7;
 
 UART_HandleTypeDef huart2;
 
@@ -58,8 +58,8 @@ UART_HandleTypeDef huart2;
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_USART2_UART_Init(void);
+static void MX_TIM2_Init(void);
 static void MX_TIM6_Init(void);
-static void MX_TIM7_Init(void);
 
 /* USER CODE BEGIN PFP */
 /* Private function prototypes -----------------------------------------------*/
@@ -67,6 +67,70 @@ static void MX_TIM7_Init(void);
 /* USER CODE END PFP */
 
 /* USER CODE BEGIN 0 */
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+{
+	if (GPIO_Pin == B1_Pin)
+	{
+//		if (duty1 < 64)
+//		{
+//			duty1 += 16;
+//		} else {
+//			duty1 = 0;
+//		}
+//
+//		__HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_1, duty1); //sets the PWM duty cycle
+
+		if (angle2 < 2*ANGLE_MAX)
+		{
+			angle2 += 1;
+		} else {
+			angle2 = 0;
+		}
+
+		pulse_count_duty2 = get_pulse_count(angle2);
+	}
+}
+
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
+	static GPIO_PinState pinstate;
+	if (htim == &htim6)
+	{
+		if (++count2 == COUNT_MAX_TOTAL-1)
+		{
+			count2 = 0;
+		}
+
+		if ((count2 < pulse_count_duty2) && (pinstate != GPIO_PIN_SET))
+		{
+			pinstate = GPIO_PIN_SET;
+			HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, pinstate);
+		}
+
+		if ((count2 >= pulse_count_duty2) && (pinstate != GPIO_PIN_RESET))
+		{
+			pinstate = GPIO_PIN_RESET;
+			HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, pinstate);
+		}
+	}
+
+	if (htim == &htim2)
+	{
+//		HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_SET);
+	//	HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
+	}
+
+}
+
+void HAL_TIM_PWM_PulseFinishedCallback(TIM_HandleTypeDef *htim)
+{
+	if (htim == &htim2)
+	{
+//		HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET);
+	}
+
+}
+
 
 /* USER CODE END 0 */
 
@@ -100,9 +164,15 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_USART2_UART_Init();
+  MX_TIM2_Init();
   MX_TIM6_Init();
-  MX_TIM7_Init();
   /* USER CODE BEGIN 2 */
+	HAL_TIM_PWM_Init(&htim2);
+	__HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_1, 32);
+	HAL_TIM_PWM_Start_IT(&htim2, TIM_CHANNEL_1);
+
+	HAL_TIM_Base_Start_IT(&htim6);
+	pulse_count_duty2 = get_pulse_count(0);
 
   /* USER CODE END 2 */
 
@@ -114,7 +184,8 @@ int main(void)
   /* USER CODE END WHILE */
 
   /* USER CODE BEGIN 3 */
-
+	  usr_process(&htim2);
+	  __WFI();
   }
   /* USER CODE END 3 */
 
@@ -169,6 +240,39 @@ void SystemClock_Config(void)
   HAL_NVIC_SetPriority(SysTick_IRQn, 0, 0);
 }
 
+/* TIM2 init function */
+static void MX_TIM2_Init(void)
+{
+
+  TIM_ClockConfigTypeDef sClockSourceConfig;
+  TIM_MasterConfigTypeDef sMasterConfig;
+
+  htim2.Instance = TIM2;
+  htim2.Init.Prescaler = 1000-1;
+  htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim2.Init.Period = 64-1;
+  htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim2) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
+
+  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+  if (HAL_TIM_ConfigClockSource(&htim2, &sClockSourceConfig) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
+
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim2, &sMasterConfig) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
+
+}
+
 /* TIM6 init function */
 static void MX_TIM6_Init(void)
 {
@@ -176,9 +280,9 @@ static void MX_TIM6_Init(void)
   TIM_MasterConfigTypeDef sMasterConfig;
 
   htim6.Instance = TIM6;
-  htim6.Init.Prescaler = 0;
+  htim6.Init.Prescaler = 1-1;
   htim6.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim6.Init.Period = 64;
+  htim6.Init.Period = 384-1;
   htim6.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
   if (HAL_TIM_Base_Init(&htim6) != HAL_OK)
   {
@@ -188,31 +292,6 @@ static void MX_TIM6_Init(void)
   sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
   sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
   if (HAL_TIMEx_MasterConfigSynchronization(&htim6, &sMasterConfig) != HAL_OK)
-  {
-    _Error_Handler(__FILE__, __LINE__);
-  }
-
-}
-
-/* TIM7 init function */
-static void MX_TIM7_Init(void)
-{
-
-  TIM_MasterConfigTypeDef sMasterConfig;
-
-  htim7.Instance = TIM7;
-  htim7.Init.Prescaler = 0;
-  htim7.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim7.Init.Period = 64;
-  htim7.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
-  if (HAL_TIM_Base_Init(&htim7) != HAL_OK)
-  {
-    _Error_Handler(__FILE__, __LINE__);
-  }
-
-  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
-  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
-  if (HAL_TIMEx_MasterConfigSynchronization(&htim7, &sMasterConfig) != HAL_OK)
   {
     _Error_Handler(__FILE__, __LINE__);
   }
@@ -270,8 +349,12 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pin = LD2_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
   HAL_GPIO_Init(LD2_GPIO_Port, &GPIO_InitStruct);
+
+  /* EXTI interrupt init*/
+  HAL_NVIC_SetPriority(EXTI15_10_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
 
 }
 
