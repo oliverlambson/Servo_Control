@@ -13,10 +13,5 @@ volatile uint16_t g_msec_count = 0;
 
 volatile uint8_t gf_BTN_PRESS = 0;
 
-volatile uint16_t servo_pulse_count[NUMBER_SERVOS];
 volatile uint16_t servo_angle[NUMBER_SERVOS];
-volatile uint16_t servo_pulse_width[NUMBER_SERVOS];
-volatile GPIO_PinState servo_pinstate[NUMBER_SERVOS];
-
-GPIO_TypeDef* servo_pin_port[NUMBER_SERVOS];
-uint16_t servo_pin_number[NUMBER_SERVOS];
+volatile uint32_t servo_pulse_width[NUMBER_SERVOS];

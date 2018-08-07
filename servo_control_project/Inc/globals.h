@@ -35,12 +35,7 @@ extern volatile uint16_t g_msec_count;
 
 extern volatile uint8_t gf_BTN_PRESS;
 
-extern volatile uint16_t servo_pulse_count[NUMBER_SERVOS];
 extern volatile uint16_t servo_angle[NUMBER_SERVOS];
-extern volatile uint16_t servo_pulse_width[NUMBER_SERVOS];
-extern volatile GPIO_PinState servo_pinstate[NUMBER_SERVOS];
-
-extern GPIO_TypeDef* servo_pin_port[NUMBER_SERVOS];
-extern uint16_t servo_pin_number[NUMBER_SERVOS];
+extern volatile uint32_t servo_pulse_width[NUMBER_SERVOS];
 
 #endif /* GLOBALS_H_ */

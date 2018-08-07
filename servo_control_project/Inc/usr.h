@@ -22,16 +22,8 @@
 
 
 /* PUBLIC FUNCTION PROTOTYPES */
-void usr_init(TIM_HandleTypeDef *htim6);
-void usr_process();
-
-void servo_tick(void );
-void set_servo_control_pin_state(uint8_t servo_number);
-
-void set_servo_angle(uint16_t angle, uint8_t servo_number);
-
-uint16_t get_pulse_count(uint16_t angle);
-
+void usr_init(TIM_HandleTypeDef *htim2);
+void usr_process(TIM_HandleTypeDef *htim2);
 
 
 #endif /* USR_H_ */
