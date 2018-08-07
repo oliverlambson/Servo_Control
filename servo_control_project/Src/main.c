@@ -47,8 +47,6 @@
 TIM_HandleTypeDef htim2;
 TIM_HandleTypeDef htim6;
 
-UART_HandleTypeDef huart2;
-
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
 
@@ -57,7 +55,6 @@ UART_HandleTypeDef huart2;
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
-static void MX_USART2_UART_Init(void);
 static void MX_TIM2_Init(void);
 static void MX_TIM6_Init(void);
 
@@ -67,57 +64,37 @@ static void MX_TIM6_Init(void);
 /* USER CODE END PFP */
 
 /* USER CODE BEGIN 0 */
+void HAL_SYSTICK_Callback (void)
+{
+   gf_SYSTICK = 1;
+
+   if (!(++g_msec_count < 1000))
+   {
+      gf_RTC_TICK = 1;
+      g_msec_count = 0;
+   }
+
+   return;
+}
+
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
 	if (GPIO_Pin == B1_Pin)
 	{
-//		if (duty1 < 64)
-//		{
-//			duty1 += 16;
-//		} else {
-//			duty1 = 0;
-//		}
-//
-//		__HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_1, duty1); //sets the PWM duty cycle
-
-		if (angle2 < 2*ANGLE_MAX)
-		{
-			angle2 += 1;
-		} else {
-			angle2 = 0;
-		}
-
-		pulse_count_duty2 = get_pulse_count(angle2);
+		gf_BTN_PRESS = 1;
 	}
 }
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
-	static GPIO_PinState pinstate;
 	if (htim == &htim6)
 	{
-		if (++count2 == COUNT_MAX_TOTAL-1)
-		{
-			count2 = 0;
-		}
-
-		if ((count2 < pulse_count_duty2) && (pinstate != GPIO_PIN_SET))
-		{
-			pinstate = GPIO_PIN_SET;
-			HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, pinstate);
-		}
-
-		if ((count2 >= pulse_count_duty2) && (pinstate != GPIO_PIN_RESET))
-		{
-			pinstate = GPIO_PIN_RESET;
-			HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, pinstate);
-		}
+		servo_tick();
 	}
 
 	if (htim == &htim2)
 	{
-//		HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_SET);
-	//	HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
+
 	}
 
 }
@@ -126,7 +103,7 @@ void HAL_TIM_PWM_PulseFinishedCallback(TIM_HandleTypeDef *htim)
 {
 	if (htim == &htim2)
 	{
-//		HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET);
+
 	}
 
 }
@@ -163,16 +140,10 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-  MX_USART2_UART_Init();
   MX_TIM2_Init();
   MX_TIM6_Init();
   /* USER CODE BEGIN 2 */
-	HAL_TIM_PWM_Init(&htim2);
-	__HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_1, 32);
-	HAL_TIM_PWM_Start_IT(&htim2, TIM_CHANNEL_1);
-
-	HAL_TIM_Base_Start_IT(&htim6);
-	pulse_count_duty2 = get_pulse_count(0);
+  usr_init(&htim6);
 
   /* USER CODE END 2 */
 
@@ -298,26 +269,6 @@ static void MX_TIM6_Init(void)
 
 }
 
-/* USART2 init function */
-static void MX_USART2_UART_Init(void)
-{
-
-  huart2.Instance = USART2;
-  huart2.Init.BaudRate = 38400;
-  huart2.Init.StopBits = UART_STOPBITS_1;
-  huart2.Init.Parity = UART_PARITY_NONE;
-  huart2.Init.Mode = UART_MODE_TX_RX;
-  huart2.Init.HwFlowCtl = UART_HWCONTROL_NONE;
-  huart2.Init.OverSampling = UART_OVERSAMPLING_16;
-  huart2.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
-  huart2.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
-  if (HAL_UART_Init(&huart2) != HAL_OK)
-  {
-    _Error_Handler(__FILE__, __LINE__);
-  }
-
-}
-
 /** Configure pins as 
         * Analog 
         * Input 
@@ -337,6 +288,9 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOC, SERVO_1_CTRL_Pin|SERVO_2_CTRL_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin : B1_Pin */
@@ -344,6 +298,13 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(B1_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : SERVO_1_CTRL_Pin SERVO_2_CTRL_Pin */
+  GPIO_InitStruct.Pin = SERVO_1_CTRL_Pin|SERVO_2_CTRL_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
   /*Configure GPIO pin : LD2_Pin */
   GPIO_InitStruct.Pin = LD2_Pin;

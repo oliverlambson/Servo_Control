@@ -8,24 +8,39 @@
 #ifndef GLOBALS_H_
 #define GLOBALS_H_
 
-#define PULSE_MAX 2100 // us
-#define PULSE_MIN 900 // us
-
-#define ANGLE_MAX 120 // deg
-#define ANGLE_MIN 0 // deg
-
-#define COUNT_MAX 150
-#define COUNT_MIN 350
-
-#define COUNT_MAX_TOTAL 3333
+// stm
+#include "stm32f3xx_hal.h"
 
 // generic
 #include "stdint.h"
 
-extern volatile uint8_t duty1;
+#define SERVO_TICK_INTERVAL 6 // us
 
-extern volatile uint16_t count2;
-extern volatile uint16_t angle2; // 2*desired angle
-extern volatile uint16_t pulse_count_duty2;
+#define NUMBER_SERVOS 2
+
+//#define PULSE_MAX 2100 // us
+//#define PULSE_MIN 900 // us
+
+#define ANGLE_MAX 120 // deg
+#define ANGLE_MIN 0 // deg
+
+#define PULSE_COUNT_MAX 150
+#define PULSE_COUNT_MIN 350
+
+#define PULSE_COUNT_MAX_TOTAL 3333
+
+extern volatile uint8_t gf_SYSTICK;
+extern volatile uint8_t gf_RTC_TICK;
+extern volatile uint16_t g_msec_count;
+
+extern volatile uint8_t gf_BTN_PRESS;
+
+extern volatile uint16_t servo_pulse_count[NUMBER_SERVOS];
+extern volatile uint16_t servo_angle[NUMBER_SERVOS];
+extern volatile uint16_t servo_pulse_width[NUMBER_SERVOS];
+extern volatile GPIO_PinState servo_pinstate[NUMBER_SERVOS];
+
+extern GPIO_TypeDef* servo_pin_port[NUMBER_SERVOS];
+extern uint16_t servo_pin_number[NUMBER_SERVOS];
 
 #endif /* GLOBALS_H_ */

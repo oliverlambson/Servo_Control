@@ -7,8 +7,16 @@
 
 #include "globals.h"
 
-volatile uint8_t duty1 = 0;
+volatile uint8_t gf_SYSTICK = 0;
+volatile uint8_t gf_RTC_TICK = 0;
+volatile uint16_t g_msec_count = 0;
 
-volatile uint16_t count2 = 0;
-volatile uint16_t angle2 = 0;
-volatile uint16_t pulse_count_duty2 = 0;
+volatile uint8_t gf_BTN_PRESS = 0;
+
+volatile uint16_t servo_pulse_count[NUMBER_SERVOS];
+volatile uint16_t servo_angle[NUMBER_SERVOS];
+volatile uint16_t servo_pulse_width[NUMBER_SERVOS];
+volatile GPIO_PinState servo_pinstate[NUMBER_SERVOS];
+
+GPIO_TypeDef* servo_pin_port[NUMBER_SERVOS];
+uint16_t servo_pin_number[NUMBER_SERVOS];
