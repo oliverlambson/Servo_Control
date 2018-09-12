@@ -54,6 +54,8 @@
 #define B1_EXTI_IRQn EXTI15_10_IRQn
 #define RCC_OSC32_OUT_Pin GPIO_PIN_15
 #define RCC_OSC32_OUT_GPIO_Port GPIOC
+#define POT_IN_Pin GPIO_PIN_3
+#define POT_IN_GPIO_Port GPIOC
 #define SERVO_CH_1_Pin GPIO_PIN_0
 #define SERVO_CH_1_GPIO_Port GPIOA
 #define SERVO_CH_2_Pin GPIO_PIN_1

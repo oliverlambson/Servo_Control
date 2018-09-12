@@ -67,7 +67,7 @@ void usr_process(TIM_HandleTypeDef *htim2)
 
 		if (servo_angle[1] < ANGLE_MAX)
 		{
-			set_servo_angle(servo_angle[1]+15, 1);
+			set_servo_angle(servo_angle[1]+30, 1);
 		} else
 		{
 			set_servo_angle(0, 1);
