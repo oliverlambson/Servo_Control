@@ -1,0 +1,37 @@
+/*
+ * globals.h
+ *
+ *  Created on: 05 Aug 2018
+ *      Author: 18225713
+ */
+
+#ifndef GLOBALS_H_
+#define GLOBALS_H_
+
+// stm
+#include "stm32f3xx_hal.h"
+
+// generic
+#include "stdint.h"
+
+
+#define NUMBER_SERVOS 1
+
+//#define PULSE_MAX 2100 // us
+//#define PULSE_MIN 900 // us
+
+#define ANGLE_MAX 120 // deg
+#define ANGLE_MIN 0 // deg
+
+#define PULSE_COUNT_MAX 150
+#define PULSE_COUNT_MIN 350
+
+#define PULSE_COUNT_MAX_TOTAL 3333
+
+
+extern volatile uint16_t servo_pulse_count[NUMBER_SERVOS];
+extern volatile uint16_t servo_angle[NUMBER_SERVOS];
+extern volatile uint16_t servo_pulse_width[NUMBER_SERVOS];
+extern volatile GPIO_PinState servo_pinstate[NUMBER_SERVOS];
+
+#endif /* GLOBALS_H_ */

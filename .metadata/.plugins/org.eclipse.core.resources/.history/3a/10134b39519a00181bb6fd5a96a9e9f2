@@ -1,0 +1,12 @@
+/*
+ * globals.c
+ *
+ *  Created on: 05 Aug 2018
+ *      Author: 18225713
+ */
+
+#include "globals.h"
+
+volatile uint16_t servo1_count = 0;
+volatile uint16_t servo1_angle = 0;
+volatile uint16_t pulse_width = 0;

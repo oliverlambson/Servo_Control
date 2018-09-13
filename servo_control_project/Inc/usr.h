@@ -22,8 +22,8 @@
 
 
 /* PUBLIC FUNCTION PROTOTYPES */
-void usr_init(TIM_HandleTypeDef *htim2);
-void usr_process(TIM_HandleTypeDef *htim2);
+void usr_init(TIM_HandleTypeDef *htim);
+void usr_process(TIM_HandleTypeDef *htim, ADC_HandleTypeDef *hadc);
 
 
 #endif /* USR_H_ */

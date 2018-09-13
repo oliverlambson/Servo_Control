@@ -1,0 +1,37 @@
+/*
+ * usr.h
+ *
+ *  Created on: 05 Aug 2018
+ *      Author: 18225713
+ */
+
+#ifndef USR_H_
+#define USR_H_
+
+/* INCLUDES */
+// stm
+#include "stm32f3xx_hal.h"
+
+// generic
+#include "stdint.h"
+
+// user
+#include "globals.h"
+
+/* DEFINES & CONSTANTS */
+
+
+/* PUBLIC FUNCTION PROTOTYPES */
+void usr_init(TIM_HandleTypeDef *htim2, TIM_HandleTypeDef *htim6);
+void usr_process(TIM_HandleTypeDef *htim2);
+
+void servo_tick(void );
+void set_servo_control_pin_state(uint8_t servo_number);
+
+void set_servo_angle(uint16_t angle, uint8_t servo_number);
+
+uint16_t get_pulse_count(uint16_t angle);
+
+
+
+#endif /* USR_H_ */
