@@ -39,7 +39,7 @@
 #define SERVO2_MAX 60
 
 /* TYPES */
-enum ctrl_state
+enum ctrl_states
 {
 	idle,
 	servo1_ctrl,
@@ -47,9 +47,18 @@ enum ctrl_state
 	run
 };
 
+enum run_states
+{
+	touch,
+	pick,
+	move,
+	reset
+};
+
 
 /* VARIABLES */
-extern enum ctrl_state state;
+extern enum ctrl_states ctrl_state;
+extern enum run_states run_state;
 
 // flags
 extern volatile bool gf_SYSTICK;
@@ -64,7 +73,8 @@ extern GPIO_PinState gf_RUN_LED;
 
 // timers/counters
 extern volatile uint16_t g_msec_count;
-volatile uint32_t g_curr_time;
+volatile uint32_t g_run_time;
+volatile uint32_t g_btn_time;
 volatile uint32_t g_switch_time;
 volatile uint16_t g_prev_btn;
 

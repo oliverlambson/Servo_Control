@@ -65,6 +65,8 @@
 #define RUN_BTN_EXTI_IRQn EXTI9_5_IRQn
 #define POT_ADC_IN_Pin GPIO_PIN_2
 #define POT_ADC_IN_GPIO_Port GPIOB
+#define POT_PWR_Pin GPIO_PIN_11
+#define POT_PWR_GPIO_Port GPIOB
 #define RUN_LED_Pin GPIO_PIN_12
 #define RUN_LED_GPIO_Port GPIOB
 #define SERVO2_BTN_Pin GPIO_PIN_6

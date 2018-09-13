@@ -23,6 +23,8 @@ void usr_init(TIM_HandleTypeDef *htim)
 {
 	uint8_t i;
 
+	HAL_GPIO_WritePin(POT_PWR_GPIO_Port, POT_PWR_Pin, GPIO_PIN_SET);
+
   //tim2 init
   for (i = 0; i < NUMBER_SERVOS; ++i)
   {
@@ -48,7 +50,7 @@ void usr_process(TIM_HandleTypeDef *htim, ADC_HandleTypeDef *hadc)
 	uint16_t pot_adc_in_val, servo_angle_val;
 //	static uint16_t ADC_min = -1, ADC_max = 0;
 
-	switch (state) {
+	switch (ctrl_state) {
 		case idle:
 			if (gf_RTC_TICK)
 			{
@@ -63,7 +65,7 @@ void usr_process(TIM_HandleTypeDef *htim, ADC_HandleTypeDef *hadc)
 			if (gf_B1)
 			{
 				// change servo 0 angle
-				if (servo_angle[0] < ANGLE_MAX)
+				if (servo_angle[0] < servo_angle_max[0])
 				{
 					set_servo_angle(servo_angle[0]+30, 0);
 				} else
@@ -71,7 +73,7 @@ void usr_process(TIM_HandleTypeDef *htim, ADC_HandleTypeDef *hadc)
 					set_servo_angle(0, 0);
 				}
 				// change servo 2 angle
-				if (servo_angle[1] < ANGLE_MAX)
+				if (servo_angle[1] < servo_angle_max[1])
 				{
 					set_servo_angle(servo_angle[1]+30, 1);
 				} else
@@ -85,21 +87,22 @@ void usr_process(TIM_HandleTypeDef *htim, ADC_HandleTypeDef *hadc)
 
 			if (gf_SERVO1_BTN)
 			{
-				state = servo1_ctrl;
+				ctrl_state = servo1_ctrl;
 				gf_SERVO1_BTN = false;
 				set_LEDS();
 			}
 
 			if (gf_SERVO2_BTN)
 			{
-				state = servo2_ctrl;
+				ctrl_state = servo2_ctrl;
 				gf_SERVO2_BTN = false;
 				set_LEDS();
 			}
 
 			if (gf_RUN_BTN)
 			{
-				state = run;
+				ctrl_state = run;
+				run_state = touch;
 				gf_RUN_BTN = false;
 				set_LEDS();
 			}
@@ -133,9 +136,15 @@ void usr_process(TIM_HandleTypeDef *htim, ADC_HandleTypeDef *hadc)
 
 			if (gf_SERVO1_BTN)
 			{
-				state = idle;
-				gf_SERVO1_BTN = false;
+				servo_angle_zero[0] = servo_angle[0];
+
+				set_servo_angle(servo_angle_min[0], 0);
+				set_servo_angle(servo_angle_min[1], 1);
+				set_servo_PWM(htim, servo_pulse_width, NUMBER_SERVOS);
+
+				ctrl_state = idle;
 				set_LEDS();
+				gf_SERVO1_BTN = false;
 			}
 
 			if (gf_SERVO2_BTN)
@@ -183,9 +192,15 @@ void usr_process(TIM_HandleTypeDef *htim, ADC_HandleTypeDef *hadc)
 
 			if (gf_SERVO2_BTN)
 			{
-				state = idle;
-				gf_SERVO2_BTN = false;
+				servo_angle_zero[1] = servo_angle[1];
+
+				set_servo_angle(servo_angle_min[0], 0);
+				set_servo_angle(servo_angle_min[1], 1);
+				set_servo_PWM(htim, servo_pulse_width, NUMBER_SERVOS);
+
+				ctrl_state = idle;
 				set_LEDS();
+				gf_SERVO2_BTN = false;
 			}
 
 			if (gf_RUN_BTN)
@@ -202,6 +217,59 @@ void usr_process(TIM_HandleTypeDef *htim, ADC_HandleTypeDef *hadc)
 
 			if (gf_SYSTICK)
 			{
+				g_run_time++;
+				switch (run_state) {
+					case touch:
+						set_servo_angle(servo_angle_zero[0], 0);
+						set_servo_angle(servo_angle_min[1], 1);
+
+						if (g_run_time >= 2500)
+						{
+							run_state = pick;
+							g_run_time = 0;
+						}
+						break;
+					case pick:
+						set_servo_angle(servo_angle_max[0], 0);
+						set_servo_angle(servo_angle_min[1], 1);
+
+						if (g_run_time >= 10000)
+						{
+							run_state = move;
+							g_run_time = 0;
+						}
+						break;
+					case move:
+						set_servo_angle(servo_angle_max[0], 0);
+						set_servo_angle(servo_angle_zero[1], 1);
+
+						if (g_run_time >= 5000)
+						{
+							run_state = reset;
+							g_run_time = 0;
+						}
+						break;
+					case reset:
+						set_servo_angle(servo_angle_min[0], 0);
+						if (g_run_time == 2500)
+						{
+							set_servo_angle(servo_angle_min[1], 1);
+						}
+						if (g_run_time >= 5000)
+						{
+							run_state = touch;
+							g_run_time = 0;
+
+							ctrl_state = idle;
+							set_LEDS();
+						}
+
+						break;
+					default:
+						break;
+				}
+				set_servo_PWM(htim, servo_pulse_width, NUMBER_SERVOS);
+
 				gf_SYSTICK = false;
 			}
 
@@ -222,7 +290,7 @@ void usr_process(TIM_HandleTypeDef *htim, ADC_HandleTypeDef *hadc)
 
 			if (gf_RUN_BTN)
 			{
-				state = idle;
+				ctrl_state = idle;
 				gf_RUN_BTN = false;
 				set_LEDS();
 			}
@@ -272,7 +340,7 @@ void usr_process(TIM_HandleTypeDef *htim, ADC_HandleTypeDef *hadc)
  */
 void set_LEDS(void )
 {
-	switch (state) {
+	switch (ctrl_state) {
 		case idle:
 			HAL_GPIO_WritePin(SERVO1_LED_GPIO_Port, SERVO1_LED_Pin, GPIO_PIN_RESET);
 			HAL_GPIO_WritePin(SERVO2_LED_GPIO_Port, SERVO2_LED_Pin, GPIO_PIN_RESET);

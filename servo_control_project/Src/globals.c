@@ -8,7 +8,8 @@
 #include "globals.h"
 
 /* VARIABLES */
-enum ctrl_state state = idle;
+enum ctrl_states ctrl_state = idle;
+enum run_states run_state;
 
 // flags
 volatile bool gf_SYSTICK = false;
@@ -23,7 +24,8 @@ GPIO_PinState gf_RUN_LED = GPIO_PIN_RESET;
 
 // timers/counters
 volatile uint16_t g_msec_count;
-volatile uint32_t g_curr_time;
+volatile uint32_t g_run_time = 0;
+volatile uint32_t g_btn_time;
 volatile uint32_t g_switch_time = 0;
 volatile uint16_t g_prev_btn;
 

@@ -83,11 +83,11 @@ void HAL_SYSTICK_Callback (void)
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
-    g_curr_time = HAL_GetTick();
+    g_btn_time = HAL_GetTick();
 
-    if (!( (g_prev_btn == GPIO_Pin) && ((g_curr_time - g_switch_time) <= MAX_DEBOUNCE_TIME) ))
+    if (!( (g_prev_btn == GPIO_Pin) && ((g_btn_time - g_switch_time) <= MAX_DEBOUNCE_TIME) ))
     {
-    	g_switch_time = g_curr_time;
+    	g_switch_time = g_btn_time;
     	g_prev_btn = GPIO_Pin;
 
     	if (GPIO_Pin == B1_Pin)
@@ -364,7 +364,7 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(GPIOA, LD2_Pin|SERVO2_LED_Pin|SERVO1_LED_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(RUN_LED_GPIO_Port, RUN_LED_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOB, POT_PWR_Pin|RUN_LED_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin : B1_Pin */
   GPIO_InitStruct.Pin = B1_Pin;
@@ -384,6 +384,13 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
   GPIO_InitStruct.Pull = GPIO_PULLDOWN;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : POT_PWR_Pin */
+  GPIO_InitStruct.Pin = POT_PWR_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_OD;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(POT_PWR_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pin : RUN_LED_Pin */
   GPIO_InitStruct.Pin = RUN_LED_Pin;
