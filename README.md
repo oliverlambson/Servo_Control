@@ -1,6 +1,6 @@
 # Bare-metal code for an ARM microcontroller to control servo motors using PWM
 
-Used to automate a process of reliably "picking" an electric guitar string to allow for repeatable experiments.
+**Used to automate a process of reliably "picking" an electric guitar string to allow for repeatable experiments.**
 
 This formed part of my BEng dissertation where I investigated [the effects of a magnetic pickup on the vibration response of an electric guitar string](https://www.academia.edu/42961860/The_Effects_of_a_Magnetic_Pickup_on_the_Vibration_Response_of_an_Electric_Guitar_String) (2018).
 
